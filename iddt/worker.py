@@ -62,10 +62,10 @@ class Worker(Daemon):
             while url is not None:
                 logger.info("Scrape: {0}".format(url['url']))
                 no_work_count = 0
-                if utils.check_match(url, url['url']):
-                    page_urls, bandwidth, time_taken = utils.get_page_urls(url)
+                if check_match(url, url['url']):
+                    page_urls, bandwidth, time_taken = get_page_urls(url)
                     for pu in page_urls:
-                        if utils.check_match(url, pu['url']):
+                        if check_match(url, pu['url']):
                             document = pu
                             if not self._mongo.check_document_exists(
                                     url, document, use_job=True):
@@ -77,9 +77,9 @@ class Worker(Daemon):
             while document is not None:
                 no_work_count = 0
                 logger.info('Type: {0}'.format(document['url']))
-                if utils.check_match(document, document['url']):
+                if check_match(document, document['url']):
                     doc_type, bad_url, bandwidth, time_taken, count = \
-                        utils.type_document(document)
+                        type_document(document)
                     self._mongo.set_document_type(
                         document, doc_type, bad_url,
                         bandwidth, time_taken
