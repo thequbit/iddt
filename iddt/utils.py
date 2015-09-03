@@ -1,11 +1,15 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-import urlparse
-import urllib2
-from urllib2 import HTTPError
+#import urlparse
+from urllib.parse import urljoin
+#import urllib2
+#from urllib2 import HTTPError
+#import httplib
+import requests
 import magic
 import tldextract
+import http.client
 
 def check_match(_url, url):
     target_url = _url['target_url']
@@ -30,8 +34,11 @@ def get_page_urls(_url):
     urls = []
     bandwidth = 0
 
-    response = requests.get(url)
-
+    try:
+        response = requests.get(url)
+    except Exception as e:
+        taken = time.time() - start
+        return [], 0, taken
     bandwidth = (len(response.headers) + len(response.text))
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -59,27 +66,30 @@ def get_page_urls(_url):
             if len(tag.contents) >= 1:
                 if not tag.string is None:
                     text = tag.string.strip()
-   
+
+            raw_url = ''   
             if verb in tag.__dict__['attrs']:
-                raw_url = tag[verb].encode('utf-8')
+                raw_url = tag[verb] #.encode('utf-8')
+                #print('raw_url: {0}, type = {1}'.format(raw_url, type(raw_url)))
             else:
                 continue
 
-            full_url = urlparse.urljoin(url, raw_url)
+            full_url = urljoin(url, raw_url)
+            #print('full_url: {0}'.format(full_url))
 
-            _url = {
+            new_url = {
                 'url': full_url,
                 'text': text,
                 'source_title': title,
                 'source_url': url
             }
-            urls.append(_url)
+            urls.append(new_url)
 
     taken = time.time() - start
 
     return urls, bandwidth, taken
 
-def type_document(document, try_count=5, sleep_time=0, try_header_size=1024, timeout=60):
+def type_document(document, try_count=5, sleep_time=0, header_size=1024, timeout=60):
 
     '''
     document = {
@@ -92,7 +102,6 @@ def type_document(document, try_count=5, sleep_time=0, try_header_size=1024, tim
 
     start = time.time()
 
-    header_size = try_header_size
     count = 0
     document_type = None
     bandwidth = 0
@@ -111,34 +120,63 @@ def type_document(document, try_count=5, sleep_time=0, try_header_size=1024, tim
         #    request = urllib2.Request(url)
         #else:
         try:
-            header_size += try_header_size
-            headers = {
-                'Range': 'byte=0-%i' % header_size,
-            }
-            request = urllib2.Request(url, headers=headers)
+        #if True:
+
+            #conn = httplib.client.HTTPConnection(url, timeout=timeout)
+            #conn.request('GET', url, headers={'Range': 'bytes=0-%i' % header_size})
+            #resp = conn.getresponse()
+            resp = requests.get(url, headers = {'Range': 'bytes=0-%i' % header_size}, stream=True)
+            #headers = resp.getheaders()
+            payload = resp.content
+            #bandwidth += len(resp.raw)
+            bandwidth += len(payload)
+
+            #header_size += try_header_size
+            #headers = {
+            #    'Range': 'byte=0-%i' % header_size,
+            #}
+            #request = urllib2.Request(url, headers=headers)
 
             #print "Downloading:"
             #print "{0}".format(url)
-            response = urllib2.urlopen(request, timeout=timeout)
-            headers = response.info()
-            payload = response.read(header_size)
-            bandwidth += ( len(headers) + len(payload) )
-            document_type = magic.from_buffer(payload, mime=True)
+            #response = urllib2.urlopen(request, timeout=timeout)
+            #headers = response.info()
+            #payload = response.read(header_size)
+            
+            #bandwidth += ( len(''.join(headers)) + len(payload) )
+            document_type = magic.from_buffer(payload, mime=True).decode('ascii')
             if document_type is None:
                 #print "\t\tDocument Type was None, downloading entire file ..."
                 #print "\t\t{0}".format(url)
-                request = urllib2.Request(url)
-                response = urllib2.urlopen(request, timeout=timeout)
-                headers = response.info()
-                payload = response.read(header_size)
-                bandwidth += ( len(headers) + len(payload) )
-                document_type = magic.from_buffer(payload, mime=True)
+                #request = urllib2.Request(url)
+                #response = urllib2.urlopen(request, timeout=timeout)
+                #headers = response.info()
+                #payload = response.read(header_size)
+                #bandwidth += ( len(headers) + len(payload) )
+                #document_type = magic.from_buffer(payload, mime=True)
+
+                print("document_type was None.")
+
+                resp = requests.get(url, stream=True)
+                payload = resp.content
+                #bandwidth += len(resp.raw)
+                bandwidth += len(payload)
+
+                document_type = magic.from_buffer(payload, mime=True).decode('ascii')
+
+            print("Document Type: {0}".format(document_type))
+
             #print "\tDownload complete.  Type: {0}".format(document_type)
             #print url, document_type
             break
 
-        except HTTPError as e:
+        except:
+            count += 1
 
+        #except HTTPError as e:
+        #except Exception as e:
+        '''
+            print("Exception: ".format(str(e)))
             if '500' in str(e):        
                 #print "\t500 Error, attempting to download entire file ..." 
                 try:
@@ -169,8 +207,9 @@ def type_document(document, try_count=5, sleep_time=0, try_header_size=1024, tim
             # some unknwon error, abort
             #print "General non-http Exception while fetching URL: {0}".format(e)
             break
+        '''
 
-        count += 1
+        #count += 1
         
     taken = time.time() - start
 

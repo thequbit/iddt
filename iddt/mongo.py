@@ -22,13 +22,13 @@ class Mongo(object):
         #self._documents.remove()
         #raise Exception('debug')
 
-    def get_counts(self):
+    def get_counts(self, job):
 
-        url_scraped_count = self._urls.find({'scraped': True}).count()
-        url_not_scraped_count = self._urls.find({'scraped': False}).count()
+        url_scraped_count = self._urls.find({'scraped': True, 'job': job}).count()
+        url_not_scraped_count = self._urls.find({'scraped': False, 'job': job}).count()
 
-        document_typed_count = self._documents.find({'typed': True}).count()
-        document_not_typed_count = self._documents.find({'typed': False}).count()
+        document_typed_count = self._documents.find({'typed': True, 'job': job}).count()
+        document_not_typed_count = self._documents.find({'typed': False, 'job': job}).count()
 
         return url_scraped_count, url_not_scraped_count, document_typed_count, document_not_typed_count
 
@@ -150,13 +150,13 @@ class Mongo(object):
         document['level'] = url['level'] + 1 # need to bump to next level
         self._documents.insert(document)
 
-    def check_document_exists(self, document, use_job=False):
+    def check_document_exists(self, url, document, use_job=False):
         '''
         Checks to see if the document already exists in the collection.
         '''
         query = {'url': document['url']}
         if use_job:
-            query['job'] = document['job']
+            query['job'] = url['job']
         response = self._documents.find_one(query)
         exists = False
         if not response is None:
@@ -196,13 +196,14 @@ class Mongo(object):
         '''
         Gets all of the HTTL URLs at the specific level
         '''
-        urls = self._documents.find({
+        docs = self._documents.find({
             'job': job,
             'level': level,
             'typed': True,
-            'doc_type': 'text/html',
+            #'doc_type': 'text/html',
         })
-        return urls 
+        #print "get_documents_at_level(), level: {0}, job: {1}, len(docs): {2}".format(level, job, docs.count())
+        return docs
 
     def set_document_contents(self, url, contents):
         '''
@@ -226,6 +227,40 @@ class Mongo(object):
             documents.append(doc)
 
         return documents
+
+    def get_documents(self, job, doc_type):
+        '''
+        Gets all of the documents for the job of specific document mime type
+        '''
+
+        documents = []
+        docs = self._documents.find({'job': job, 'doc_type': doc_type})
+        for doc in docs:
+            for key in doc:
+                if '_id' in key or 'datetime' in key:
+                    doc[key] = str(doc[key])
+            documents.append(doc)
+
+        return documents
+
+    def log_error(self, job, url, error_text):
+        '''
+        Logs an error with a job
+        '''
+        error = dict(
+            job = job,
+            datetime = str(datetime.datetime.now()),
+            url = url,
+            error_text = error_text,
+        )
+        self._errors.insert(error)
+
+    def get_errors(self, job):
+        '''
+        Gets all of the errors for a specific job
+        '''
+        errors = self._errors.find({'job': job})
+        return errors
 
 if __name__ == '__main__':
 
