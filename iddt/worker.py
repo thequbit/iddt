@@ -1,9 +1,11 @@
 import sys
 import time
 
-import utils
-from daemon import Daemon
-from mongo import Mongo
+from iddt.utils import check_match
+from iddt.utils import type_document
+from iddt.utils import get_page_urls
+from iddt.daemon import Daemon
+from iddt.mongo import Mongo
 
 import logging
 

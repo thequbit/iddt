@@ -4,7 +4,7 @@ import datetime
 import uuid
 import json
 
-from mongo import Mongo
+from iddt.mongo import Mongo
 
 import logging
 
