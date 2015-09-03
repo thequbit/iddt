@@ -1,12 +1,32 @@
 # iddt
 Internet Document Discovery Tool
 
+## What is it
+
 https://github.com/thequbit/iddt
 
-There are two parts of `iddt`: The Worker and the Dispatcher.  The worker
-is what does all of the hard lifting with the internet, and the dispatcher
-keep everyone in line.  You can have any many workers as you're system 
-will allow mongdb connections.
+There are three parts of `iddt`
+
+- Worker
+- Dispatcher
+- MongoDB
+
+The worker is what does all of the hard lifting with the internet, and 
+the dispatcher keep everyone in line.  You can have any many workers as
+you're system will allow mongdb connections.  MongoDB is used as the
+central cache to limit the amount of bandwidth needed to scrape target
+URLs.
+
+##How to use it
+
+###Requirements
+
+`iddt` uses MongoDB as a central cache while it is working.  You'll need to
+install MongoDB to use `iddt`.
+
+- Ubuntu
+
+    $ sudo apt-get install mongodb
 
 ###Worker
 
