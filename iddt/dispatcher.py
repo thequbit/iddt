@@ -6,7 +6,7 @@ import json
 
 from mongo import Mongo
 
-import logging.basicConfig(level=loggin.INFO)
+import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("iddt.dispatcher")
@@ -80,12 +80,15 @@ class Dispatcher(object):
             url_count = self.load_urls_at_level(level)
             working = True
             while working:
-                scraped, not_scraped, typed, not_typed = self._mongo.get_counts(self.job)
+                scraped, not_scraped, typed, not_typed = \
+                    self._mongo.get_counts(self.job)
                 if not_scraped is 0 and not_typed is 0:
                     working = False
                 else:
                     time.sleep(1)
-                logger.info("Level: {0} / {1}, Not Scraped: {2}, Not Typed: {3}".format(level, link_level, not_scraped, not_typed))
+                logger.info(("Level: {0} / {1}, Not Scraped: {2},"
+                             " Not Typed: {3}").format(
+                                 level, link_level, not_scraped, not_typed))
             level += 1
 
         print("All URLs processed.")
@@ -102,15 +105,19 @@ class Dispatcher(object):
                     docs.append(doc)
         return docs
 
-"""
 if __name__ == '__main__':
 
     dispatcher = Dispatcher()
-    documents = dispatcher.dispatch({'target_url': 'http://www.townofchili.org/', 'link_level': 3, 'allowed_domains': []})
-    #dispatcher.dispatch({'target_url': 'http://timduffy.me/', 'link_level': 5, 'allowed_domains': []})
-    #print(documents)
+    documents = dispatcher.dispatch({
+        'target_url': 'http://www.townofchili.org/',
+        'link_level': 3, 'allowed_domains': []})
+    '''
+    dispatcher.dispatch({
+        'target_url': 'http://timduffy.me/',
+        'link_level': 5, 'allowed_domains': []})
+    print(documents)
+    '''
     documents = dispatcher.get_documents(['application/pdf'])
     with open('docs.json', 'w') as f:
         f.write(json.dumps(documents))
     print("Discovered {0} documents.".format(len(documents)))
-"""
