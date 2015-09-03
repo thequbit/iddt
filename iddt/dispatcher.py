@@ -91,12 +91,11 @@ class Dispatcher(object):
                                  level, link_level, not_scraped, not_typed))
             level += 1
 
-        print("All URLs processed.")
+        loggin.info("All URLs processed.")
 
     def get_documents(self, doc_types=['*']):
         docs = []
         for doc_type in doc_types:
-            print("doc type: {0}".format(doc_type))
             if doc_type == "*":
                 docs = self._mongo.get_all_documents(self.job)
                 break
@@ -104,20 +103,3 @@ class Dispatcher(object):
                 for doc in self._mongo.get_documents(self.job, doc_type):
                     docs.append(doc)
         return docs
-
-if __name__ == '__main__':
-
-    dispatcher = Dispatcher()
-    documents = dispatcher.dispatch({
-        'target_url': 'http://www.townofchili.org/',
-        'link_level': 3, 'allowed_domains': []})
-    '''
-    dispatcher.dispatch({
-        'target_url': 'http://timduffy.me/',
-        'link_level': 5, 'allowed_domains': []})
-    print(documents)
-    '''
-    documents = dispatcher.get_documents(['application/pdf'])
-    with open('docs.json', 'w') as f:
-        f.write(json.dumps(documents))
-    print("Discovered {0} documents.".format(len(documents)))
