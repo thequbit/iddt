@@ -2,8 +2,8 @@ from iddt.dispatcher import Dispatcher
 
 d = Dispatcher()
 d.dispatch({
-    'target_url': 'http://timduffy.me/',
-    'link_level': 3,
+    'target_url': 'http://example.com/',
+    'link_level': 1,
     'allowed_domains': [],
 })
 
