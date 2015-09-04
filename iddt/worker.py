@@ -26,10 +26,16 @@ class Worker(Daemon):
         super(Worker, self).__init__(pidfile)
         self._mongo = Mongo(uri, db, url_collection, documents_collection)
         self.sleep_time = sleep_time
+        self._callback = None
+
+    def register_callback(self, callback):
+        self._callback = callback
 
     def run(self):
-        self.do_work()
-
+        try:
+            self.do_work()
+        except Exception as e:
+            print(str(e))
     def do_work(self):
         '''
         This function sits until it is told to exit by
@@ -84,6 +90,8 @@ class Worker(Daemon):
                         document, doc_type, bad_url,
                         bandwidth, time_taken
                     )
+                    if self._callback is not None:
+                        self._callback(document)
                 document = self._mongo.get_document()
             if no_work_count is 10:
                 print("No Work.")
