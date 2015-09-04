@@ -37,17 +37,30 @@ starting point:
     import sys
     from iddt import Worker
 
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("iddt.worker_test")
+
     class MyWorker(Worker):
 
         def __init__(self, *args, **kwargs):
-            super(MyWorker, self).__init__( *args, **kwargs)
+            super(MyWorker, self).__init__()
+            logging.info("MyWorker __init__() complete.")
 
+        def new_doc(self, document):
+            # do something with the document
+            pass
+            
     if __name__ == '__main__':
-        pidfile = '/tmp/worker.pid'
+        pidfile_path = '/tmp/worker.pid'
         if len(sys.argv) == 3:
-            pidfile = sys.argv[2]
-        worker = MyWorker(pidfile=pidfile)
+            pidfile_path = sys.argv[2]
+        #logger.info('PID File: {0}'.format(pidfile_path))
+        worker = MyWorker(pidfile=pidfile_path)
+        worker.register_callback(worker.new_doc)
         if len(sys.argv) >= 2:
+            #logger.info('{} {}'.format(sys.argv[0], sys.argv[1]))
             if 'start' == sys.argv[1]:
                 worker.start()
             elif 'stop' == sys.argv[1]:
@@ -61,8 +74,10 @@ starting point:
                 sys.exit(2)
             sys.exit(0)
         else:
+            #logger.warning('show cmd deamon usage')
             print("Usage: {} start|stop|restart".format(sys.argv[0]))
             sys.exit(2)
+
 
 This will allow you to start, stop, and restart a worker daemon at the
 command prompt.  If you are interested in using the worker NOT as a 
@@ -71,7 +86,12 @@ is fully blocking ) by using the .run() function.
 
     from iddt import Worker
     
-    worker = Worker()
+    def new_doc(document):
+        # do something with the document
+        pass
+    
+    worker = MyWorker()
+    worker.register_callback(new_doc)
     worker.run()
 
 You're on your own to gracefully exit the `run()` function.  If you set
@@ -82,14 +102,12 @@ You're on your own to gracefully exit the `run()` function.  If you set
 The dispatcher tells the workers what to work on.  You use it something like
 this:
 
-    from iddt import Dispatcher
+    from iddt.dispatcher import Dispatcher
 
-    dispatcher = Dispatcher()
-
-    # this will block until complete
-    dispatcher.dispatch({
-        'target_url': 'http://example.com',
-        'link_level': 3,
+    d = Dispatcher()
+    d.dispatch({
+        'target_url': 'http://example.com/',
+        'link_level': 1,
         'allowed_domains': [],
     })
 
