@@ -91,7 +91,7 @@ class Dispatcher(object):
                                  level, link_level, not_scraped, not_typed))
             level += 1
 
-        loggin.info("All URLs processed.")
+        logging.info("All URLs processed.")
 
     def get_documents(self, doc_types=['*']):
         docs = []
