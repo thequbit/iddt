@@ -56,7 +56,6 @@ starting point:
         pidfile_path = '/tmp/worker.pid'
         if len(sys.argv) == 3:
             pidfile_path = sys.argv[2]
-        #logger.info('PID File: {0}'.format(pidfile_path))
         worker = MyWorker(pidfile=pidfile_path)
         worker.register_callback(worker.new_doc)
         if len(sys.argv) >= 2:
