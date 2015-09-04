@@ -27,12 +27,14 @@ class Worker(Daemon):
         self._mongo = Mongo(uri, db, url_collection, documents_collection)
         self.sleep_time = sleep_time
         self._callback = None
+        self.bandwidth = 0
 
     def register_callback(self, callback):
         self._callback = callback
 
     def run(self):
         try:
+            self.bandwidth = 0
             self.do_work()
         except Exception as e:
             print(str(e))
@@ -70,6 +72,7 @@ class Worker(Daemon):
                 no_work_count = 0
                 if check_match(url, url['url']):
                     page_urls, bandwidth, time_taken = get_page_urls(url)
+                    self.bandwidth += bandwidth
                     for pu in page_urls:
                         if check_match(url, pu['url']):
                             document = pu
@@ -86,6 +89,7 @@ class Worker(Daemon):
                 if check_match(document, document['url']):
                     doc_type, bad_url, bandwidth, time_taken, count = \
                         type_document(document)
+                    self.bandwidth += bandwidth
                     self._mongo.set_document_type(
                         document, doc_type, bad_url,
                         bandwidth, time_taken
