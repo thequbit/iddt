@@ -25,6 +25,7 @@ class Dispatcher(object):
 
     def reset(self):
         self.job = '{0}-{1}'.format(str(uuid.uuid4()), str(uuid.uuid4()))
+        self.idle = False
 
     def add_url(self, url):
         url['text'] = '<root>'
@@ -72,8 +73,8 @@ class Dispatcher(object):
             if key not in url:
                 raise Exception('Missing key in URL: %s' % key)
 
+        self.idle = False
         self.add_url(url)
-
         link_level = url['link_level']
         level = 0
         while level < link_level+1:
@@ -90,7 +91,7 @@ class Dispatcher(object):
                              " Not Typed: {3}").format(
                                  level, link_level, not_scraped, not_typed))
             level += 1
-
+        self.idle = True
         logging.info("All URLs processed.")
 
     def get_documents(self, doc_types=['*']):
