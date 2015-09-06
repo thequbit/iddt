@@ -54,7 +54,7 @@ class Dispatcher(object):
             url_count += 1
         return url_count
 
-    def dispatch(self, url):
+    def dispatch(self, url, clean_job=True):
         '''
         Dispatches the URLs to the workers
 
@@ -91,6 +91,8 @@ class Dispatcher(object):
                              " Not Typed: {3}").format(
                                  level, link_level, not_scraped, not_typed))
             level += 1
+        if clean_job:
+            self._mongo.clean_job(self.job)
         self.idle = True
         logging.info("All URLs processed.")
 
