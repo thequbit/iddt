@@ -243,6 +243,13 @@ class Mongo(object):
 
         return documents
 
+    def clean_job(self, job):
+        '''
+        Clears all entries associated with a job
+        '''
+        self._documents.remove({'job': job})
+        self._urls.remove({'job': job})
+
     def log_error(self, job, url, error_text):
         '''
         Logs an error with a job
