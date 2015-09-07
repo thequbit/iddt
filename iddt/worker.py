@@ -38,6 +38,7 @@ class Worker(Daemon):
             self.do_work()
         except Exception as e:
             print(str(e))
+
     def do_work(self):
         '''
         This function sits until it is told to exit by
