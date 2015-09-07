@@ -21,28 +21,30 @@ class Dispatcher(object):
                  documents_collection='_docs'):
 
         self._mongo = Mongo(uri, db, url_collection, documents_collection)
+        self._job = None
+        self.idle = None
         self.reset()
 
     def reset(self):
-        self.job = '{0}-{1}'.format(str(uuid.uuid4()), str(uuid.uuid4()))
+        self._job = '{0}-{1}'.format(str(uuid.uuid4()), str(uuid.uuid4()))
         self.idle = False
 
     def add_url(self, url):
         url['text'] = '<root>'
-        url['job'] = self.job
+        url['_job'] = self._job
         url['url'] = url['target_url']
         url['level'] = 0
         self._mongo.add_url(url)
 
     def load_urls_at_level(self, level):
-        documents = self._mongo.get_documents_at_level(self.job, level)
+        documents = self._mongo.get_documents_at_level(self._job, level)
         url_count = 0
         for doc in documents:
             if '_id' in doc:
                 del(doc['_id'])
             keys = [
                 'target_url',
-                'job',
+                '_job',
                 'allowed_domains',
                 'url',
                 'level',
@@ -54,7 +56,7 @@ class Dispatcher(object):
             url_count += 1
         return url_count
 
-    def dispatch(self, url, clean_job=True):
+    def dispatch(self, url, clean__job=True):
         '''
         Dispatches the URLs to the workers
 
@@ -82,7 +84,7 @@ class Dispatcher(object):
             working = True
             while working:
                 scraped, not_scraped, typed, not_typed = \
-                    self._mongo.get_counts(self.job)
+                    self._mongo.get_counts(self._job)
                 if not_scraped is 0 and not_typed is 0:
                     working = False
                 else:
@@ -91,8 +93,8 @@ class Dispatcher(object):
                              " Not Typed: {3}").format(
                                  level, link_level, not_scraped, not_typed))
             level += 1
-        if clean_job:
-            self._mongo.clean_job(self.job)
+        if clean__job:
+            self._mongo.clean__job(self._job)
         self.idle = True
         logging.info("All URLs processed.")
 
@@ -100,9 +102,9 @@ class Dispatcher(object):
         docs = []
         for doc_type in doc_types:
             if doc_type == "*":
-                docs = self._mongo.get_all_documents(self.job)
+                docs = self._mongo.get_all_documents(self._job)
                 break
             else:
-                for doc in self._mongo.get_documents(self.job, doc_type):
+                for doc in self._mongo.get_documents(self._job, doc_type):
                     docs.append(doc)
         return docs
