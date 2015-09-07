@@ -31,7 +31,7 @@ class Dispatcher(object):
 
     def add_url(self, url):
         url['text'] = '<root>'
-        url['_job'] = self._job
+        url['job'] = self._job
         url['url'] = url['target_url']
         url['level'] = 0
         self._mongo.add_url(url)
@@ -44,7 +44,7 @@ class Dispatcher(object):
                 del(doc['_id'])
             keys = [
                 'target_url',
-                '_job',
+                'job',
                 'allowed_domains',
                 'url',
                 'level',
@@ -56,7 +56,7 @@ class Dispatcher(object):
             url_count += 1
         return url_count
 
-    def dispatch(self, url, clean__job=True):
+    def dispatch(self, url, clean_job=True):
         '''
         Dispatches the URLs to the workers
 
@@ -93,8 +93,8 @@ class Dispatcher(object):
                              " Not Typed: {3}").format(
                                  level, link_level, not_scraped, not_typed))
             level += 1
-        if clean__job:
-            self._mongo.clean__job(self._job)
+        if clean_job:
+            self._mongo.clean_job(self._job)
         self.idle = True
         logging.info("All URLs processed.")
 
