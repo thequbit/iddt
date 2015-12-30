@@ -108,3 +108,6 @@ class Dispatcher(object):
                 for doc in self._mongo.get_documents(self._job, doc_type):
                     docs.append(doc)
         return docs
+
+    def clean_job(self):
+        self._mongo.clean_job(self._job)
