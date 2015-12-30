@@ -3,4 +3,4 @@ beautifulsoup4>=4.4.0
 libmagic>=1.0
 python-magic>=0.4.6
 tldextract>=1.7.1
-pymongo>=3.0.3
+pymongo==3.0.3
